@@ -1,0 +1,37 @@
+import { FiFolder, FiSearch, FiAlertCircle, FiCheckCircle } from 'react-icons/fi'
+
+const EmptyState = ({ 
+  icon = 'folder',
+  title,
+  message,
+  action,
+  className = ''
+}) => {
+  const icons = {
+    folder: FiFolder,
+    search: FiSearch,
+    alert: FiAlertCircle,
+    check: FiCheckCircle
+  }
+
+  const Icon = icons[icon]
+
+  return (
+    <div className={`flex flex-col items-center justify-center py-12 ${className}`}>
+      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+        <Icon className="w-8 h-8 text-gray-400" />
+      </div>
+      {title && (
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+      )}
+      {message && (
+        <p className="text-gray-600 text-center max-w-md mb-6">{message}</p>
+      )}
+      {action && (
+        <div>{action}</div>
+      )}
+    </div>
+  )
+}
+
+export default EmptyState
