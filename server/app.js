@@ -36,31 +36,72 @@ db.once("open", () => {
 const app = express();
 
 const allowedOrigins = [
-    'http://localhost:5173', // Development
-    'http://localhost:3000', // Local frontend
-    'https://klicknshoot.vercel.app', // Vercel deployment
-    'https://www.klicknshoot.com',
-    'https://klicknshoot.com'  // Add your custom domain later
-    // 'https://peskaya-98bb2fd3d6e7.herokuapp.com', // Production
-    // 'https://www.peskaya.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://klicknshoot.vercel.app',
+  'https://www.klicknshoot.com',
+  'https://klicknshoot.com'
 ];
 
-// Middleware
 app.use(cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Postman, mobile apps)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('CORS not allowed for this origin'), false);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+
+app.options('*', cors());
+
+
+// const allowedOrigins = [
+//     'http://localhost:5173', // Development
+//     'http://localhost:3000', // Local frontend
+//     'https://klicknshoot.vercel.app', // Vercel deployment
+//     'https://www.klicknshoot.com',
+//     'https://klicknshoot.com'  // Add your custom domain later
+//     // 'https://peskaya-98bb2fd3d6e7.herokuapp.com', // Production
+//     // 'https://www.peskaya.com',
+// ];
+
+// // Middleware
+// app.use(cors({
+//     origin: allowedOrigins,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//     credentials: true,
+// }));
+
 // HTTPS redirect for production
-if(process.env.NODE_ENV === 'production') {
-    app.use((req, res, next) => {
-      if (req.header('x-forwarded-proto') !== 'https')
-        res.redirect(`https://${req.header('host')}${req.url}`)
-      else
-        next()
-    })
+// if(process.env.NODE_ENV === 'production') {
+//     app.use((req, res, next) => {
+//       if (req.header('x-forwarded-proto') !== 'https')
+//         res.redirect(`https://${req.header('host')}${req.url}`)
+//       else
+//         next()
+//     })
+// }
+
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') return next();
+
+    if (req.header('x-forwarded-proto') !== 'https') {
+      return res.redirect(`https://${req.header('host')}${req.url}`);
+    }
+
+    next();
+  });
 }
+
 
 // Body parsing and security middleware
 app.use(express.urlencoded({extended: true, limit: '25mb'}));
