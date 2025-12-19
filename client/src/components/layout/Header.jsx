@@ -21,7 +21,6 @@ const Header = () => {
     logout().catch(console.error) // async cleanup but not blocking
   }
 
-
   const navLinks = [
     { name: 'Find Creatives', path: '/creatives' },
     { name: 'Browse Jobs', path: '/requests' },
@@ -45,7 +44,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -148,7 +147,7 @@ const Header = () => {
           {/* Mobile menu button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 md:hidden text-gray-700 hover:text-blue-600"
+            className="p-2 lg:hidden text-gray-700 hover:text-blue-600"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? (
@@ -161,7 +160,7 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t py-4">
+          <div className="lg:hidden border-t py-4">
             <div className="flex flex-col space-y-4">
               {navLinks.map((link) => (
                 <Link

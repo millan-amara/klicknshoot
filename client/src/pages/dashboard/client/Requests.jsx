@@ -150,12 +150,12 @@ const ClientRequests = () => {
           <h1 className="text-3xl font-bold text-gray-900">My Requests</h1>
           <p className="text-gray-600 mt-2">
             Manage your photography and videography requests
-          </p>
+          </p> 
         </div>
         
         <div className="mt-4 md:mt-0">
           <Link to="/dashboard/client/requests/new">
-            <Button variant="primary" leftIcon={<FiPlus />}>
+            <Button variant="primary" leftIcon={<FiPlus />} className='text-white'>
               New Request
             </Button>
           </Link>

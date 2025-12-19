@@ -25,7 +25,7 @@ const proposalRoutes = require('./routes/proposals');
 const subscriptionRoutes = require('./routes/subscriptions');
 const adminRoutes = require('./routes/admin');
 
-const dbUrl = process.env.DB_URL || 'mongodb+srv://Levis:Forever%40%4024Forever@clusterflipping.ptkmg.mongodb.net/picha?retryWrites=true&w=majority';
+const dbUrl = process.env.DB_URL;
 mongoose.connect(dbUrl, {});
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -38,6 +38,9 @@ const app = express();
 const allowedOrigins = [
     'http://localhost:5173', // Development
     'http://localhost:3000', // Local frontend
+    'https://klicknshoot.vercel.app', // Vercel deployment
+    'https://www.klicknshoot.com',
+    'https://klicknshoot.com'  // Add your custom domain later
     // 'https://peskaya-98bb2fd3d6e7.herokuapp.com', // Production
     // 'https://www.peskaya.com',
 ];
@@ -67,7 +70,7 @@ app.use(mongoSanitize());
 app.set('trust proxy', 1);
 
 // Session configuration
-const secret = process.env.SECRET || '85AGTHRHGYZZ';
+const secret = process.env.SECRET;
 const store = MongoStore.create({
     mongoUrl: dbUrl,
     secret,

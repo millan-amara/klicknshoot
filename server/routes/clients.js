@@ -9,6 +9,7 @@ router.get('/', isLoggedIn, checkRole(['admin']), clientController.getClients);
 
 // @route   GET /api/clients/:id
 // @desc    Get client by ID
+router.get('/by-user/:userId', isLoggedIn, clientController.getClientByUserId);
 router.get('/:id', isLoggedIn, clientController.getClientById);
 
 // @route   PUT /api/clients/:id

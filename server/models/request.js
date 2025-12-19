@@ -17,15 +17,6 @@ const requestSchema = new mongoose.Schema({
     required: true,
     maxlength: 1000
   },
-  category: {
-    type: String,
-    enum: [
-      'wedding', 'event', 'portrait', 'commercial', 
-      'product', 'real_estate', 'corporate', 'fashion',
-      'food', 'travel', 'sports', 'other'
-    ],
-    required: true
-  },
   serviceType: {
     type: String,
     enum: ['photography', 'videography', 'both'],
@@ -48,16 +39,12 @@ const requestSchema = new mongoose.Schema({
     }
   },
   location: {
-    county: String,
     city: String,
   },
   date: {
     type: Date,
     required: true
   },
-  // requirements: [{
-  //   type: String
-  // }],
   status: {
     type: String,
     enum: ['open', 'reviewing', 'closed', 'cancelled', 'completed'],
@@ -132,8 +119,6 @@ requestSchema.pre('save', function(next) {
 
 // Indexes for faster queries
 requestSchema.index({ status: 1 });
-requestSchema.index({ category: 1 });
-requestSchema.index({ 'location.county': 1 });
 requestSchema.index({ 'budget.min': 1, 'budget.max': 1 });
 requestSchema.index({ createdAt: -1 });
 requestSchema.index({ client: 1, status: 1 });

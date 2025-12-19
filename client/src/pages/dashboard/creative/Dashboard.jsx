@@ -12,7 +12,6 @@ import {
 import StatsCard from '../../../components/dashboard/StatsCard'
 import QuickActions from '../../../components/dashboard/QuickActions'
 import ActivityFeed from '../../../components/dashboard/ActivityFeed'
-import ProfileCompletion from '../../../components/dashboard/ProfileCompletion'
 import SubscriptionStatus from '../../../components/dashboard/SubscriptionStatus'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 import EmptyState from '../../../components/common/EmptyState'
@@ -25,22 +24,28 @@ import { useUser } from '../../../contexts/UserContext'
 
 const CreativeDashboard = () => {
   const { user } = useAuth()
-  const { profile } = useUser()
+  const { profile, profileLoading } = useUser()
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState(null)
   const [recentProposals, setRecentProposals] = useState([])
   const [activities, setActivities] = useState([])
 
   useEffect(() => {
-    fetchDashboardData()
-  }, [])
+    // Only fetch dashboard data when profile is loaded AND user exists
+    if (user && profile && !profileLoading) {
+      console.log('✅ Profile loaded, fetching dashboard data')
+      fetchDashboardData()
+    }
+  }, [user, profile, profileLoading])
 
   const fetchDashboardData = async () => {
+    console.log('USER ID:', user.id)
+    console.log('PROFILE ID:', profile?._id);
     setLoading(true)
     try {
       // Fetch stats
       const statsResponse = await userService.getUserStats(user.id)
-      setStats(statsResponse.stats)
+      setStats(statsResponse.stats) 
 
       // Fetch recent proposals
       const proposalsResponse = await creativeService.getCreativeProposals(profile?._id, {
@@ -49,30 +54,6 @@ const CreativeDashboard = () => {
       })
       setRecentProposals(proposalsResponse.proposals)
 
-      // Mock activities (in real app, fetch from API)
-      const mockActivities = [
-        {
-          type: 'proposal',
-          message: 'You submitted a proposal for "Wedding Photography in Nairobi"',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
-        },
-        {
-          type: 'message',
-          message: 'Client viewed your proposal for "Product Photography"',
-          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000)
-        },
-        {
-          type: 'completion',
-          message: 'Your proposal for "Corporate Event" was accepted!',
-          timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
-        },
-        {
-          type: 'connection',
-          message: 'You received a new review on your profile',
-          timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-        }
-      ]
-      setActivities(mockActivities)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -101,14 +82,6 @@ const CreativeDashboard = () => {
     }
   ]
 
-  const profileCompletionItems = [
-    { label: 'Profile Picture', completed: false, action: () => {} },
-    { label: 'Portfolio Items', completed: (profile?.portfolio?.length || 0) >= 3, action: () => {} },
-    { label: 'Bio Description', completed: !!profile?.bio, action: () => {} },
-    { label: 'Services Listed', completed: (profile?.services?.length || 0) > 0, action: () => {} },
-    { label: 'Location Added', completed: !!profile?.location?.county, action: () => {} }
-  ]
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -127,38 +100,6 @@ const CreativeDashboard = () => {
         <p className="text-gray-600 mt-2">
           Here's what's happening with your creative business today.
         </p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          title="Active Proposals"
-          value={stats?.pendingProposals || 0}
-          icon={FiMessageSquare}
-          change={12}
-          changeType="up"
-        />
-        <StatsCard
-          title="Acceptance Rate"
-          value={`${stats?.acceptanceRate || 0}%`}
-          icon={FiTrendingUp}
-          change={5}
-          changeType="up"
-        />
-        <StatsCard
-          title="Profile Views"
-          value={profile?.metadata?.profileViews || 0}
-          icon={FiCheckCircle}
-          change={8}
-          changeType="up"
-        />
-        <StatsCard
-          title="Portfolio Items"
-          value={profile?.portfolio?.length || 0}
-          icon={FiBriefcase}
-          change={3}
-          changeType="up"
-        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -225,15 +166,10 @@ const CreativeDashboard = () => {
               </div>
             )}
           </div>
-
-          {/* Activity Feed */}
-          <ActivityFeed activities={activities} />
         </div>
 
         {/* Right Column */}
         <div className="space-y-8">
-          {/* Profile Completion */}
-          <ProfileCompletion items={profileCompletionItems} />
 
           {/* Subscription Status */}
           <SubscriptionStatus />
@@ -262,7 +198,7 @@ const CreativeDashboard = () => {
                   Get verified to build trust with clients and appear higher in search results.
                 </p>
                 <Link to="/dashboard/creative/profile">
-                  <Button variant="primary" className="w-full">
+                  <Button variant="primary" className="w-full text-white">
                     Submit for Verification
                   </Button>
                 </Link>

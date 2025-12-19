@@ -53,6 +53,8 @@ import AdminAnalytics from './pages/admin/Analytics'
 import Checkout from './pages/payment/Checkout'
 import PaymentSuccess from './pages/payment/Success'
 import PaymentCancel from './pages/payment/Cancel'
+import PaystackCallback from './pages/payment/Callback'
+
 
 // // Protected Route Components
 import ProtectedRoute from './components/auth/ProtectedRoute'
@@ -168,6 +170,7 @@ function App() {
                 <Route path="/checkout/:plan" element={<Checkout />} />
                 <Route path="/payment/success" element={<PaymentSuccess />} />
                 <Route path="/payment/cancel" element={<PaymentCancel />} />
+                <Route path="/subscription/callback" element={<PaystackCallback />} />
 
                 {/* 404 Route */}
                 <Route path="*" element={<NotFound />} />

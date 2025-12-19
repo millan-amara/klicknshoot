@@ -8,9 +8,7 @@ exports.getRequests = async (req, res) => {
     const {
       page = 1,
       limit = 20,
-      county,
       city,
-      category,
       serviceType,
       minBudget,
       maxBudget,
@@ -23,11 +21,9 @@ exports.getRequests = async (req, res) => {
     const query = { status };
 
     // Location filters
-    if (county) query['location.county'] = county;
     if (city) query['location.city'] = { $regex: city, $options: 'i' };
 
-    // Category and service filters
-    if (category) query.category = category;
+    // Service filters
     if (serviceType) query.serviceType = serviceType;
 
     // Budget filters
@@ -128,6 +124,8 @@ exports.getRequestById = async (req, res) => {
     const user = req.user ? await User.findById(req.user.id) : null;
     const canSeeBudget = user ? user.getLimits().canSeeBudget : false;
     
+    console.log('CLIENT BEFORE toObject:', request.client);
+
     const requestObj = request.toObject();
     if (!canSeeBudget && user?.role !== 'admin' && user?.id !== request.client._id.toString()) {
       requestObj.budget = { currency: 'KES' }; // Hide min/max
@@ -145,6 +143,8 @@ exports.getRequestById = async (req, res) => {
 
 exports.createRequest = async (req, res) => {
   try {
+    console.log('Creating request with data:', req.body);
+    
     const user = await User.findById(req.user.id);
     const client = await Client.findOne({ user: req.user.id });
 
@@ -158,8 +158,10 @@ exports.createRequest = async (req, res) => {
       client: req.user.id,
       status: { $in: ['open', 'reviewing'] }
     });
+    console.log(limits)
 
     if (activeRequests >= limits.activeRequests) {
+      console.log('Request limit reached:', activeRequests, '>=', limits.activeRequests);
       return res.status(400).json({
         message: `You have reached your limit of ${limits.activeRequests} active requests. Upgrade your subscription to post more.`
       });

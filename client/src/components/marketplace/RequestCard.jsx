@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { FiMapPin, FiCalendar, FiClock, FiDollarSign, FiEye } from 'react-icons/fi'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 import Badge from '../ui/Badge'
+import { useEffect } from 'react'
 
 const RequestCard = ({ request, showBudget = true }) => {
   const {
@@ -36,6 +37,10 @@ const RequestCard = ({ request, showBudget = true }) => {
     }
   }
 
+  useEffect(() => {
+    console.log(request)
+  }, [request])
+
   return (
     <Link to={`/requests/${_id}`}>
       <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden border border-gray-100">
@@ -63,7 +68,6 @@ const RequestCard = ({ request, showBudget = true }) => {
           {showBudget && budget && (
             <div className="mb-4">
               <div className="flex items-center text-gray-700 mb-1">
-                <FiDollarSign className="w-4 h-4 mr-2" />
                 <span className="font-medium">Budget:</span>
               </div>
               <p className="text-lg font-semibold text-gray-900">

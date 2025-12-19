@@ -46,6 +46,19 @@ export const subscriptionService = {
     }
   },
 
+  // In subscription.service.js
+  verifyPayment: async (data) => {
+    try {
+          console.log('Sending subscription data:', data) // Debug log
+
+      const response = await api.post('/subscriptions/verify-payment', data)
+          console.log('Service response:', response.data) // Debug log
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
   getSubscriptionLimits: async (subscriptionId) => {
     try {
       const response = await api.get(`/subscriptions/${subscriptionId}/limits`)

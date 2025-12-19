@@ -1,6 +1,7 @@
 const Subscription = require('../models/subscription');
 const User = require('../models/user');
 const Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
+const crypto = require('crypto');
 
 exports.getPlans = (req, res) => {
   const plans = {
@@ -9,14 +10,12 @@ exports.getPlans = (req, res) => {
       price: 0,
       currency: 'KES',
       features: [
-        '10 proposals per month',
-        '3 active requests',
         'Basic profile',
         'Standard listing',
         'Email support'
       ],
       limits: {
-        proposalsPerMonth: 10,
+        proposalsPerMonth: 3,
         activeRequests: 3,
         canSeeBudget: false,
         priority: 'low'
@@ -27,15 +26,11 @@ exports.getPlans = (req, res) => {
       price: 500, // KES per month
       currency: 'KES',
       features: [
-        '50 proposals per month',
-        '10 active requests',
-        'See client budgets',
         'Priority listing',
-        'Verification badge',
         'WhatsApp support'
       ],
       limits: {
-        proposalsPerMonth: 50,
+        proposalsPerMonth: 40,
         activeRequests: 10,
         canSeeBudget: true,
         priority: 'medium'
@@ -46,11 +41,7 @@ exports.getPlans = (req, res) => {
       price: 1500, // KES per month
       currency: 'KES',
       features: [
-        '200 proposals per month',
-        '30 active requests',
-        'See client budgets',
         'Top priority listing',
-        'Verification badge',
         'Featured in search',
         '24/7 priority support'
       ],
@@ -84,6 +75,8 @@ exports.getUserSubscriptions = async (req, res) => {
   }
 };
 
+
+// Subscription controller (backend)
 exports.createSubscription = async (req, res) => {
   try {
     const { plan, period = 'monthly', autoRenew = true } = req.body;
@@ -103,12 +96,19 @@ exports.createSubscription = async (req, res) => {
 
     if (activeSubscription && plan !== 'free') {
       return res.status(400).json({
+        success: false,
         message: 'You already have an active subscription. Please cancel it first or upgrade.'
       });
     }
 
+    // FREE PLAN: Direct activation without payment
     if (plan === 'free') {
-      // Handle free subscription
+      // Deactivate any existing paid subscriptions
+      await Subscription.updateMany(
+        { user: req.user.id, plan: { $ne: 'free' } },
+        { status: 'cancelled' }
+      );
+
       const subscription = new Subscription({
         user: req.user.id,
         plan: 'free',
@@ -134,13 +134,15 @@ exports.createSubscription = async (req, res) => {
       return res.json({
         success: true,
         subscription,
-        message: 'Free subscription activated successfully'
+        message: 'Free subscription activated successfully',
+        isFree: true
       });
     }
 
-    // Create Paystack transaction for paid plans
+    // PAID PLANS: Create Paystack payment
     const amount = plan === 'basic' ? 50000 : 150000; // in kobo (500 KES = 50000 kobo)
-    
+  
+
     const paystackResponse = await Paystack.transaction.initialize({
       email: user.email,
       amount: amount,
@@ -148,14 +150,14 @@ exports.createSubscription = async (req, res) => {
       reference: `SUB-${Date.now()}-${req.user.id}`,
       callback_url: `${process.env.FRONTEND_URL}/subscription/callback`,
       metadata: {
-        userId: req.user.id,
-        plan,
-        period
+        userId: req.user.id.toString(),
+        plan: plan,
+        period: period
       }
     });
 
     if (!paystackResponse.status) {
-      throw new Error('Failed to initialize payment');
+      throw new Error(paystackResponse.message || 'Failed to initialize payment');
     }
 
     // Create pending subscription
@@ -179,20 +181,28 @@ exports.createSubscription = async (req, res) => {
     });
 
     await subscription.save();
+    console.log(`PAYSTACK: ${paystackResponse.data.authorization_url}`);
 
     res.json({
       success: true,
       authorization_url: paystackResponse.data.authorization_url,
       reference: paystackResponse.data.reference,
+      access_code: paystackResponse.data.access_code,
       subscription,
-      message: 'Payment initialized. Redirect to Paystack to complete payment.'
+      message: 'Payment initialized. Redirect to Paystack to complete payment.',
+      isFree: false
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Create subscription error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error', 
+      error: error.message 
+    });
   }
 };
 
+// subscriptionController.js - Update paystackWebhook
 exports.paystackWebhook = async (req, res) => {
   try {
     // Verify it's from Paystack
@@ -201,10 +211,12 @@ exports.paystackWebhook = async (req, res) => {
       .digest('hex');
     
     if (hash !== req.headers['x-paystack-signature']) {
+      console.error('Invalid webhook signature');
       return res.status(400).send('Invalid signature');
     }
 
     const event = req.body;
+    console.log('Webhook event received:', event.event, 'Reference:', event.data?.reference);
     
     if (event.event === 'charge.success') {
       const { reference, amount, customer } = event.data;
@@ -215,10 +227,12 @@ exports.paystackWebhook = async (req, res) => {
       }).populate('user');
 
       if (!subscription) {
+        console.error('Subscription not found for reference:', reference);
         return res.status(404).json({ message: 'Subscription not found' });
       }
 
       if (subscription.payment.status === 'success') {
+        console.log('Payment already processed for reference:', reference);
         return res.status(200).send('Already processed');
       }
 
@@ -227,7 +241,25 @@ exports.paystackWebhook = async (req, res) => {
       subscription.payment.transactionId = event.data.id;
       subscription.payment.paidAt = new Date();
       subscription.status = 'active';
-
+      
+      // Set end date based on period
+      const endDate = new Date();
+      switch (subscription.period) {
+        case 'monthly':
+          endDate.setMonth(endDate.getMonth() + 1);
+          break;
+        case 'quarterly':
+          endDate.setMonth(endDate.getMonth() + 3);
+          break;
+        case 'yearly':
+          endDate.setFullYear(endDate.getFullYear() + 1);
+          break;
+      }
+      subscription.endDate = endDate;
+      
+      // Update features
+      subscription.features = subscription.getFeatures();
+      
       await subscription.save();
 
       // Update user subscription
@@ -237,7 +269,21 @@ exports.paystackWebhook = async (req, res) => {
       user.subscriptionExpiry = subscription.endDate;
       await user.save();
 
-      console.log(`Subscription ${subscription._id} activated for user ${user._id}`);
+      console.log(`✅ Subscription ${subscription._id} activated for user ${user._id}, Plan: ${subscription.plan}`);
+    } else if (event.event === 'charge.failed') {
+      const { reference } = event.data;
+      
+      // Update subscription to failed status
+      const subscription = await Subscription.findOne({ 
+        'payment.reference': reference 
+      });
+      
+      if (subscription) {
+        subscription.payment.status = 'failed';
+        subscription.status = 'pending';
+        await subscription.save();
+        console.log(`❌ Payment failed for subscription ${subscription._id}`);
+      }
     }
 
     res.sendStatus(200);
@@ -246,6 +292,54 @@ exports.paystackWebhook = async (req, res) => {
     res.status(500).send('Webhook error');
   }
 };
+
+
+// subscriptionController.js - SIMPLIFIED verifyPayment
+exports.verifyPayment = async (req, res) => {
+  try {
+    const { reference } = req.body;
+
+    if (!reference) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Payment reference is required' 
+      });
+    }
+
+    // Check if subscription exists and is paid
+    const subscription = await Subscription.findOne({
+      'payment.reference': reference
+    }).populate('user');
+
+    if (!subscription) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Subscription not found' 
+      });
+    }
+
+    // Return current status
+    res.json({
+      success: subscription.payment.status === 'success',
+      status: subscription.payment.status,
+      subscription: {
+        plan: subscription.plan,
+        status: subscription.status,
+        isActive: subscription.isActive()
+      },
+      message: subscription.payment.status === 'success' 
+        ? 'Payment verified' 
+        : 'Payment pending'
+    });
+  } catch (error) {
+    console.error('Verify payment error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error' 
+    });
+  }
+};
+
 
 exports.cancelSubscription = async (req, res) => {
   try {

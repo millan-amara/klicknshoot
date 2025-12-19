@@ -44,7 +44,6 @@ const CreativeProfile = () => {
     location: {
       county: '',
       city: '',
-      address: ''
     },
     services: [],
     equipment: [],
@@ -65,7 +64,7 @@ const CreativeProfile = () => {
         displayName: profile.displayName || '',
         phoneNumber: profile.phoneNumber || '',
         bio: profile.bio || '',
-        location: profile.location || { county: '', city: '', address: '' },
+        location: profile.location || { county: '', city: '' },
         services: profile.services || [],
         equipment: profile.equipment || [],
         socialLinks: profile.socialLinks || {
@@ -220,6 +219,7 @@ const CreativeProfile = () => {
           ) : (
             <Button
               variant="primary"
+              className='text-white'
               onClick={() => setShowVerificationModal(true)}
               leftIcon={profile?.verification?.isVerified ? <FiCheckCircle /> : <FiAlertCircle />}
             >
@@ -331,7 +331,7 @@ const CreativeProfile = () => {
                 />
               </div>
               
-              <InputField
+              {/* <InputField
                 label="Address (Optional)"
                 name="location.address"
                 value={formData.location.address}
@@ -339,7 +339,7 @@ const CreativeProfile = () => {
                 placeholder="Street address or landmark"
                 className="mt-6"
                 helperText="Only shown to clients after accepting proposals"
-              />
+              /> */}
             </div>
 
             {/* Services */}
@@ -371,40 +371,7 @@ const CreativeProfile = () => {
                 Selected services will appear on your profile and in search filters
               </p>
             </div>
-
-            {/* Equipment */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Equipment</h2>
-              
-              <div className="space-y-3 mb-6">
-                {formData.equipment.map((item, index) => (
-                  <div key={index} className="flex items-center">
-                    <InputField
-                      value={item}
-                      onChange={(e) => handleEquipmentChange(index, e.target.value)}
-                      placeholder="e.g., Canon EOS R5, DJI Mavic 3, Godox lights"
-                      className="flex-1"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleEquipmentRemove(index)}
-                      className="ml-3 p-2 text-gray-400 hover:text-red-500"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleEquipmentAdd}
-                className="w-full"
-              >
-                + Add Equipment
-              </Button>
-            </div>
+ 
           </div>
 
           {/* Right Column - Social & Actions */}
@@ -504,7 +471,7 @@ const CreativeProfile = () => {
                   <Button
                     type="button"
                     variant="primary"
-                    className="w-full mt-4"
+                    className="w-full mt-4 text-white"
                     onClick={() => setShowVerificationModal(true)}
                   >
                     Submit for Verification
@@ -520,7 +487,7 @@ const CreativeProfile = () => {
                 variant="primary"
                 size="large"
                 loading={saving}
-                className="w-full"
+                className="w-full text-white"
                 leftIcon={<FiSave />}
               >
                 Save Profile Changes

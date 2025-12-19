@@ -127,7 +127,7 @@ const CreativePortfolio = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
+        <div className='pr-2'>
           <h1 className="text-3xl font-bold text-gray-900">Portfolio Management</h1>
           <p className="text-gray-600 mt-2">
             Showcase your best work to attract more clients. You have {portfolioItems.length} portfolio items.
@@ -137,6 +137,7 @@ const CreativePortfolio = () => {
         <Button
           onClick={() => setShowAddModal(true)}
           leftIcon={<FiPlus />}
+          className='text-white'
         >
           Add Portfolio Item
         </Button>
@@ -198,6 +199,7 @@ const CreativePortfolio = () => {
           <Button
             onClick={() => setShowAddModal(true)}
             leftIcon={<FiPlus />}
+            className='text-white'
           >
             Add Your First Portfolio Item
           </Button>
@@ -314,7 +316,7 @@ const CreativePortfolio = () => {
 
       {/* Tips */}
       <Card className="bg-blue-50 border-blue-200">
-        <div className="p-6">
+        <div className="">
           <h3 className="font-semibold text-gray-900 mb-3">💡 Portfolio Tips</h3>
           <ul className="space-y-2 text-sm text-gray-700">
             <li>• Add at least 5 high-quality portfolio items to build credibility</li>
@@ -414,6 +416,7 @@ const CreativePortfolio = () => {
             <Button
               onClick={handleAddItem}
               loading={processing}
+              className='text-white'
             >
               Add to Portfolio
             </Button>

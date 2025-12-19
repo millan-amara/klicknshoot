@@ -197,12 +197,6 @@ const RequestDetails = () => {
                     </h4>
                     <p className="text-gray-900">
                       {request.location.city && `${request.location.city}, `}
-                      {request.location.county}
-                      {request.location.exactLocation && (
-                        <span className="block text-sm text-gray-600 mt-1">
-                          {request.location.exactLocation}
-                        </span>
-                      )}
                     </p>
                   </div>
                 )}
@@ -217,43 +211,10 @@ const RequestDetails = () => {
                     <p className="text-gray-900">{formatDate(request.date)}</p>
                   </div>
                 )}
-
-                {/* Duration */}
-                {request.duration && (
-                  <div>
-                    <h4 className="font-medium text-gray-700 mb-2 flex items-center">
-                      <FiClock className="w-4 h-4 mr-2" />
-                      Duration
-                    </h4>
-                    <p className="text-gray-900">
-                      {request.duration.value} {request.duration.unit}
-                    </p>
-                  </div>
-                )}
-
-                {/* Category */}
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">Category</h4>
-                  <span className="inline-block px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
-                    {request.category}
-                  </span>
-                </div>
               </div>
 
-              {/* Requirements */}
-              {request.requirements && request.requirements.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h3>
-                  <ul className="list-disc list-inside text-gray-700 space-y-1">
-                    {request.requirements.map((req, index) => (
-                      <li key={index}>{req}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               {/* Client Info */}
-              <div className="border-t pt-6">
+              {/* <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                   <FiUser className="w-5 h-5 mr-2" />
                   Posted by
@@ -269,7 +230,7 @@ const RequestDetails = () => {
                     )}
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Proposals Info */}
@@ -362,7 +323,7 @@ const RequestDetails = () => {
                       You have {getRemainingProposals()} proposals remaining this month
                     </p>
                     <Link to="/pricing">
-                      <Button variant="primary" className="w-full">
+                      <Button variant="primary" className="w-full text-white">
                         Upgrade to Submit More
                       </Button>
                     </Link>

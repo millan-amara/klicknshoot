@@ -75,8 +75,8 @@ const Contact = () => {
     {
       icon: FiMail,
       title: 'Email',
-      details: ['hello@Klick n Shoot.co.ke', 'support@Klick n Shoot.co.ke'],
-      link: 'mailto:hello@Klick n Shoot.co.ke'
+      details: ['hello@klicknshoot.com', 'support@klicknshoot.com'],
+      link: 'mailto:hello@klicknshoot.com'
     },
     {
       icon: FiPhone,

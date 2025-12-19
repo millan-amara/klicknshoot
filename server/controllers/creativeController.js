@@ -19,7 +19,6 @@ exports.getCreatives = async (req, res) => {
     const query = { isActive: true };
 
     // Location filters
-    if (county) query['location.county'] = county;
     if (city) query['location.city'] = { $regex: city, $options: 'i' };
 
     // Service filters
@@ -125,6 +124,42 @@ exports.getCreativeById = async (req, res) => {
         ...creative.toObject(),
         activeProposals: proposals
       }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// creativeController.js
+exports.getCreativeByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    console.log('Looking for creative with user ID:', userId);
+    
+    // Find creative by user reference
+    const creative = await Creative.findOne({ user: userId })
+      .populate('user', 'email subscription subscriptionStatus');
+    
+    if (!creative) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Creative profile not found' 
+      });
+    }
+
+    // Check authorization (user can only view their own profile)
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Not authorized' 
+      });
+    }
+
+    res.json({
+      success: true,
+      creative
     });
   } catch (error) {
     console.error(error);

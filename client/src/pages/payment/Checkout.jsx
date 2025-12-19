@@ -71,33 +71,55 @@ const Checkout = () => {
   }, [plan, navigate])
 
   const handlePayment = async () => {
-    if (!user) {
-      toast.error('Please login to continue')
-      navigate('/login', { state: { from: `/checkout/${plan}` } })
+  if (!user) {
+    toast.error('Please login to continue')
+    navigate('/login', { state: { from: `/checkout/${plan}` } })
+    return
+  }
+
+  setProcessing(true)
+  try {
+    console.log('Creating subscription for plan:', plan)
+    
+    const response = await createSubscription({
+      plan: plan,
+      period: 'monthly'
+    })
+
+    console.log('Full API response:', response)
+    console.log('Response structure:', JSON.stringify(response, null, 2)) // Better formatting
+
+    // Check if the response has a nested data property
+    const responseData = response.data || response
+    
+    console.log('Response data:', responseData)
+    console.log('Authorization URL:', responseData.authorization_url)
+
+    // If it's a free plan, redirect to dashboard
+    if (responseData.isFree) {
+      toast.success('Free subscription activated successfully!')
+      navigate('/dashboard/creative')
       return
     }
 
-    setProcessing(true)
-    try {
-      const response = await createSubscription({
-        plan: plan,
-        period: 'monthly'
-      })
-
-      if (response.paymentUrl) {
-        // Redirect to Paystack payment page
-        window.location.href = response.paymentUrl
-      } else if (response.success) {
-        toast.success('Subscription activated successfully!')
-        navigate('/dashboard/creative')
-      }
-    } catch (error) {
-      toast.error(error.message || 'Payment processing failed')
-      console.error('Payment error:', error)
-    } finally {
-      setProcessing(false)
+    // For paid plans, check for authorization_url and redirect to Paystack
+    if (responseData.authorization_url) {
+      console.log('Redirecting to Paystack:', responseData.authorization_url)
+      // Redirect to Paystack payment page
+      window.location.href = responseData.authorization_url
+    } else {
+      console.error('No authorization_url found in response:', responseData)
+      throw new Error('Payment URL not received from server')
     }
+  } catch (error) {
+    console.error('Payment error details:', error)
+    console.error('Error response:', error.response)
+    toast.error(error.message || 'Payment processing failed. Please try again.')
+  } finally {
+    setProcessing(false)
   }
+}
+
 
   const currentPlan = plans[plan]
 
@@ -222,10 +244,11 @@ const Checkout = () => {
                     onClick={handlePayment}
                     loading={processing || subscriptionLoading}
                     disabled={processing || subscriptionLoading}
-                    className="w-full"
+                    className="w-full text-white"
                     size="large"
                   >
-                    {processing || subscriptionLoading ? 'Processing...' : `Pay KES ${currentPlan.price}`}
+                    {currentPlan.price === 0 ? 'Activate Free Plan' : 
+                     processing || subscriptionLoading ? 'Processing...' : `Pay KES ${currentPlan.price}`}
                   </Button>
                   
                   <Button
@@ -238,7 +261,7 @@ const Checkout = () => {
                   
                   <p className="text-xs text-center text-gray-500 mt-4">
                     By completing your purchase, you agree to our Terms of Service and Privacy Policy.
-                    Your subscription will auto-renew unless cancelled.
+                    {currentPlan.price > 0 && ' Your subscription will auto-renew unless cancelled.'}
                   </p>
                 </div>
               </div>

@@ -3,6 +3,7 @@ import api from './api'
 export const userService = {
   getUserById: async (userId) => {
     try {
+      console.log(userId)
       const { data } = await api.get(`/users/${userId}`)
       return data
     } catch (error) {
@@ -21,6 +22,7 @@ export const userService = {
 
   getUserStats: async (userId) => {
     try {
+      console.log(`LOGGING ID: ${userId}`);
       const { data } = await api.get(`/users/${userId}/stats`)
       return data
     } catch (error) {

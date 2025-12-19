@@ -1,14 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
-  FiCamera, 
-  FiVideo, 
-  FiDollarSign, 
   FiMapPin,
   FiCalendar,
-  FiClock,
   FiCheck,
-  FiAlertCircle
+  FiAlertCircle,
+  FiArrowRight
 } from 'react-icons/fi'
 import InputField from '../../../components/forms/InputField'
 import SelectField from '../../../components/forms/SelectField'
@@ -16,7 +13,7 @@ import TextareaField from '../../../components/forms/TextareaField'
 import Button from '../../../components/common/Button'
 import { requestService } from '../../../services/request.service'
 import { useSubscription } from '../../../contexts/SubscriptionContext'
-import { KENYA_COUNTIES, CATEGORIES, SERVICE_TYPES, DURATION_UNITS } from '../../../utils/constants'
+import { SERVICE_TYPES } from '../../../utils/constants'
 
 const PostRequest = () => {
   const navigate = useNavigate()
@@ -28,7 +25,6 @@ const PostRequest = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: '',
     serviceType: '',
     budget: {
       min: '',
@@ -36,16 +32,9 @@ const PostRequest = () => {
       currency: 'KES'
     },
     location: {
-      county: '',
       city: '',
-      exactLocation: ''
     },
     date: '',
-    duration: {
-      value: '',
-      unit: 'days'
-    },
-    // requirements: ['']
   })
 
   const handleChange = (e) => {
@@ -63,12 +52,6 @@ const PostRequest = () => {
         ...prev,
         location: { ...prev.location, [field]: value }
       }))
-    } else if (name.startsWith('duration.')) {
-      const field = name.split('.')[1]
-      setFormData(prev => ({
-        ...prev,
-        duration: { ...prev.duration, [field]: value }
-      }))
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
     }
@@ -77,24 +60,6 @@ const PostRequest = () => {
       setErrors(prev => ({ ...prev, [name]: '' }))
     }
   }
-
-  // const handleRequirementChange = (index, value) => {
-  //   const newRequirements = [...formData.requirements]
-  //   newRequirements[index] = value
-  //   setFormData(prev => ({ ...prev, requirements: newRequirements }))
-  // }
-
-  // const addRequirement = () => {
-  //   setFormData(prev => ({
-  //     ...prev,
-  //     requirements: [...prev.requirements, '']
-  //   }))
-  // }
-
-  // const removeRequirement = (index) => {
-  //   const newRequirements = formData.requirements.filter((_, i) => i !== index)
-  //   setFormData(prev => ({ ...prev, requirements: newRequirements }))
-  // }
 
   const validateStep1 = () => {
     const newErrors = {}
@@ -109,10 +74,6 @@ const PostRequest = () => {
       newErrors.description = 'Description is required'
     } else if (formData.description.length > 1000) {
       newErrors.description = 'Description must be less than 1000 characters'
-    }
-    
-    if (!formData.category) {
-      newErrors.category = 'Category is required'
     }
     
     if (!formData.serviceType) {
@@ -135,10 +96,6 @@ const PostRequest = () => {
     
     if (parseInt(formData.budget.min) > parseInt(formData.budget.max)) {
       newErrors['budget.max'] = 'Maximum budget must be greater than minimum'
-    }
-    
-    if (!formData.location.county) {
-      newErrors['location.county'] = 'County is required'
     }
     
     if (!formData.date) {
@@ -192,11 +149,6 @@ const PostRequest = () => {
           currency: 'KES'
         },
         date: new Date(formData.date).toISOString(),
-        // duration: formData.duration.value ? {
-        //   value: parseInt(formData.duration.value),
-        //   unit: formData.duration.unit
-        // } : undefined,
-        // requirements: formData.requirements.filter(req => req.trim() !== '')
       }
       
       const response = await requestService.createRequest(requestData)
@@ -290,25 +242,12 @@ const PostRequest = () => {
                 error={errors.description}
                 required
                 rows={6}
-                placeholder="Describe your project in detail. Include what you're looking for, style preferences, specific shots needed, etc."
+                placeholder="Describe your project in detail, explaining what you're looking for"
                 helperText="Detailed descriptions attract better proposals"
                 className="mb-6"
               />
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <SelectField
-                  label="Category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  error={errors.category}
-                  required
-                  options={CATEGORIES.map(category => ({ 
-                    value: category, 
-                    label: category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ') 
-                  }))}
-                  placeholder="Select a category"
-                />
                 
                 <SelectField
                   label="Service Type"
@@ -326,54 +265,17 @@ const PostRequest = () => {
               </div>
             </div>
 
-            {/* Requirements */}
-            {/* <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Requirements</h2>
-              
-              <div className="space-y-4 mb-6">
-                {formData.requirements.map((requirement, index) => (
-                  <div key={index} className="flex items-center">
-                    <InputField
-                      value={requirement}
-                      onChange={(e) => handleRequirementChange(index, e.target.value)}
-                      placeholder={`Requirement ${index + 1} (optional)`}
-                      className="flex-1"
-                    />
-                    {formData.requirements.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeRequirement(index)}
-                        className="ml-3 p-2 text-gray-400 hover:text-red-500"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addRequirement}
-                className="w-full"
-              >
-                + Add Another Requirement
-              </Button>
-              <p className="text-sm text-gray-600 mt-3">
-                List any specific requirements, equipment needs, or deliverables
-              </p>
-            </div> */}
-
             {/* Navigation */}
-            <div className="flex justify-end">
+            <div className="flex justify-center md:justify-end">
               <Button
                 type="button"
+                className='text-white flex items-center'
                 variant="primary"
                 onClick={handleNext}
                 size="large"
               >
-                Continue to Budget & Location
+                <span className='mr-2'>Continue to Budget & Location</span>
+                <FiArrowRight />
               </Button>
             </div>
           </div>
@@ -382,7 +284,6 @@ const PostRequest = () => {
             {/* Budget */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                {/* <FiDollarSign className="w-5 h-5 mr-2" /> */}
                 Budget Range (KES)
               </h2>
               
@@ -395,7 +296,6 @@ const PostRequest = () => {
                   onChange={handleChange}
                   error={errors['budget.min']}
                   required
-                  // leftIcon={<FiDollarSign className="text-gray-400" />}
                   placeholder="KES 5000"
                   helperText="Minimum amount you're willing to pay"
                 />
@@ -408,20 +308,11 @@ const PostRequest = () => {
                   onChange={handleChange}
                   error={errors['budget.max']}
                   required
-                  // leftIcon={<FiDollarSign className="text-gray-400" />}
                   placeholder="KES 25000"
                   helperText="Maximum amount you're willing to pay"
                 />
               </div>
-              
-              {/* {!limits?.canSeeBudget && (
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    ⚠️ With your current plan, only creatives with paid subscriptions can see your budget.
-                    Consider upgrading for better visibility.
-                  </p>
-                </div>
-              )} */}
+
             </div>
 
             {/* Location */}
@@ -432,16 +323,6 @@ const PostRequest = () => {
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <SelectField
-                  label="County"
-                  name="location.county"
-                  value={formData.location.county}
-                  onChange={handleChange}
-                  error={errors['location.county']}
-                  required
-                  options={KENYA_COUNTIES.map(county => ({ value: county, label: county }))}
-                  placeholder="Select county"
-                />
                 
                 <InputField
                   label="City/Town (optional)"
@@ -473,27 +354,6 @@ const PostRequest = () => {
                   leftIcon={<FiCalendar className="text-gray-400" />}
                   helperText="When do you need the creative?"
                 />
-                
-                {/* <div className="grid grid-cols-2 gap-4">
-                  <InputField
-                    label="Duration"
-                    name="duration.value"
-                    type="number"
-                    value={formData.duration.value}
-                    onChange={handleChange}
-                    placeholder="e.g., 2"
-                    leftIcon={<FiClock className="text-gray-400" />}
-                    helperText="How long will the project take?"
-                  />
-                  
-                  <SelectField
-                    label="Unit"
-                    name="duration.unit"
-                    value={formData.duration.unit}
-                    onChange={handleChange}
-                    options={DURATION_UNITS.map(unit => ({ value: unit.value, label: unit.label }))}
-                  />
-                </div> */}
               </div>
             </div>
 
@@ -517,12 +377,13 @@ const PostRequest = () => {
                 onClick={handleBack}
                 size="large"
               >
-                ← Back to Project Details
+                ← Back
               </Button>
               
               <Button
                 type="submit"
                 variant="primary"
+                className='text-white'
                 size="large"
                 loading={loading}
               >

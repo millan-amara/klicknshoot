@@ -13,6 +13,7 @@ export const requestService = {
   getRequestById: async (requestId) => {
     try {
       const response = await api.get(`/requests/${requestId}`)
+      console.log(response.data)
       return response.data
     } catch (error) {
       throw error.response?.data || error

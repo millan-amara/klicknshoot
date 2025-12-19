@@ -201,7 +201,7 @@ const Pricing = () => {
                       <Link to={isAuthenticated ? `/checkout/${planKey}` : `/register?plan=${planKey}`}>
                         <Button
                           variant={isPopular ? 'primary' : 'outline'}
-                          className="w-full"
+                          className={isPopular ? 'primary text-white w-full' : 'outline w-full'}
                           size="large"
                         >
                           {planKey === 'free' ? 'Get Started Free' : 'Choose Plan'}
@@ -247,8 +247,7 @@ const Pricing = () => {
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Is there a free trial for paid plans?</h3>
               <p className="text-gray-600">
-                We don't offer free trials, but you can start with our free plan to test the platform. 
-                All paid plans come with a 14-day money-back guarantee if you're not satisfied.
+                We don't offer free trials, but you can start with our free plan to test the platform.
               </p>
             </div>
           </div>
@@ -267,7 +266,7 @@ const Pricing = () => {
               </Button>
             </Link>
             <Link to="/register">
-              <Button variant="primary" size="large">
+              <Button variant="primary" className='text-white' size="large">
                 Start Free Today
               </Button>
             </Link>

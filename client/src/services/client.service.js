@@ -30,6 +30,7 @@ export const clientService = {
 
   getClientStats: async (clientId) => {
     try {
+      console.log(`LOGGING CLIENT ID: ${clientId}`);
       const response = await api.get(`/clients/${clientId}/stats`)
       return response.data
     } catch (error) {

@@ -11,10 +11,12 @@ router.get('/', creativeController.getCreatives);
 // @route   GET /api/creatives/featured
 // @desc    Get featured creatives
 router.get('/featured', creativeController.getFeaturedCreatives);
+router.get('/by-user/:userId', isLoggedIn, creativeController.getCreativeByUserId);
 
 // @route   GET /api/creatives/:id
 // @desc    Get creative by ID
 router.get('/:id', creativeController.getCreativeById);
+
 
 // @route   PUT /api/creatives/:id
 // @desc    Update creative profile

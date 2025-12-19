@@ -120,38 +120,6 @@ const ClientDashboard = () => {
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          title="Active Requests"
-          value={stats?.activeRequests || 0}
-          icon={FiBriefcase}
-          change={5}
-          changeType="up"
-        />
-        <StatsCard
-          title="Proposals Received"
-          value={stats?.totalProposals || 0}
-          icon={FiMessageSquare}
-          change={15}
-          changeType="up"
-        />
-        <StatsCard
-          title="Completed Projects"
-          value={stats?.completedProjects || 0}
-          icon={FiTrendingUp}
-          change={8}
-          changeType="up"
-        />
-        <StatsCard
-          title="Total Budget"
-          value={formatCurrency(stats?.totalBudgetSpent || 0)}
-          icon={FiDollarSign}
-          change={12}
-          changeType="up"
-        />
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-8">
@@ -169,7 +137,7 @@ const ClientDashboard = () => {
                   </Button>
                 </Link>
                 <Link to="/dashboard/client/requests/new">
-                  <Button variant="primary" size="small" lefticon={<FiPlus />}>
+                  <Button variant="primary" className='text-white' size="small" lefticon={<FiPlus />}>
                     New Request
                   </Button>
                 </Link>
@@ -183,7 +151,7 @@ const ClientDashboard = () => {
                 message="Post your first request to find creatives for your project"
                 action={
                   <Link to="/dashboard/client/requests/new">
-                    <Button variant="primary">Post a Request</Button>
+                    <Button variant="primary" className='text-white'>Post a Request</Button>
                   </Link>
                 }
               />
@@ -227,52 +195,10 @@ const ClientDashboard = () => {
             )}
           </div>
 
-          {/* Activity Feed */}
-          <ActivityFeed activities={activities} />
         </div>
 
         {/* Right Column */}
         <div className="space-y-8">
-          {/* Subscription Status */}
-          <SubscriptionStatus />
-
-          {/* Quick Stats */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Project Statistics</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-gray-600">Average Proposals per Request</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {stats?.averageProposalsPerRequest?.toFixed(1) || 0}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full"
-                    style={{ width: `${Math.min(100, (stats?.averageProposalsPerRequest || 0) / 5 * 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-gray-600">Favorite Category</span>
-                  <span className="text-sm font-medium text-gray-900 capitalize">
-                    {stats?.favoriteCategory || 'None'}
-                  </span>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-gray-600">Average Project Duration</span>
-                  <span className="text-sm font-medium text-gray-900">2-3 days</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Tips for Clients */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">

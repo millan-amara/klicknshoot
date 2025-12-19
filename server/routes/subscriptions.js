@@ -17,7 +17,9 @@ router.post('/', isLoggedIn, subscriptionController.createSubscription);
 
 // @route   POST /api/subscriptions/:id/paystack-webhook
 // @desc    Paystack webhook for payment verification
-router.post('/:id/paystack-webhook', subscriptionController.paystackWebhook);
+router.post('/webhook/paystack', subscriptionController.paystackWebhook);
+// router.post('/:id/paystack-webhook', subscriptionController.paystackWebhook);
+router.post('/verify-payment', isLoggedIn, subscriptionController.verifyPayment);
 
 // @route   POST /api/subscriptions/:id/cancel
 // @desc    Cancel subscription

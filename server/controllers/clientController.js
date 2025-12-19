@@ -60,6 +60,41 @@ exports.getClientById = async (req, res) => {
   }
 };
 
+exports.getClientByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    console.log('Looking for creative with user ID:', userId);
+    
+    // Find creative by user reference
+    const client = await Client.findOne({ user: userId })
+      .populate('user', 'email subscription subscriptionStatus');
+    
+    if (!client) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Client profile not found' 
+      });
+    }
+
+    // Check authorization (user can only view their own profile)
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Not authorized' 
+      });
+    }
+
+    res.json({
+      success: true,
+      client
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 exports.updateClient = async (req, res) => {
   try {
     const { id } = req.params;

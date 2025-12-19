@@ -19,9 +19,7 @@ const BrowseRequests = () => {
   // Filters state
   const [filters, setFilters] = useState({
     search: '',
-    county: '',
     city: '',
-    category: '',
     serviceType: '',
     minBudget: '',
     maxBudget: '',
@@ -79,9 +77,7 @@ const BrowseRequests = () => {
   const handleClearFilters = () => {
     setFilters({
       search: '',
-      county: '',
       city: '',
-      category: '',
       serviceType: '',
       minBudget: '',
       maxBudget: '',
@@ -98,9 +94,7 @@ const BrowseRequests = () => {
   const getActiveFilterCount = () => {
     let count = 0
     if (filters.search) count++
-    if (filters.county) count++
     if (filters.city) count++
-    if (filters.category) count++
     if (filters.serviceType) count++
     if (filters.minBudget) count++
     if (filters.maxBudget) count++
@@ -176,33 +170,12 @@ const BrowseRequests = () => {
                   <FiMapPin className="w-4 h-4 mr-2" />
                   Location
                 </h3>
-                <SelectField
-                  value={filters.county}
-                  onChange={(e) => handleFilterChange('county', e.target.value)}
-                  options={['', ...KENYA_COUNTIES].map(county => ({ 
-                    value: county, 
-                    label: county || 'All Counties' 
-                  }))}
-                  className="mb-3"
-                />
+
                 <InputField
                   type="text"
                   value={filters.city}
                   onChange={(e) => handleFilterChange('city', e.target.value)}
                   placeholder="Enter city..."
-                />
-              </div>
-
-              {/* Category Filter */}
-              <div className="mb-6">
-                <h3 className="font-medium text-gray-700 mb-3">Category</h3>
-                <SelectField
-                  value={filters.category}
-                  onChange={(e) => handleFilterChange('category', e.target.value)}
-                  options={['', ...CATEGORIES].map(category => ({ 
-                    value: category, 
-                    label: category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ') 
-                  }))}
                 />
               </div>
 
@@ -267,7 +240,7 @@ const BrowseRequests = () => {
               <Button
                 onClick={fetchRequests}
                 variant="primary"
-                className="w-full"
+                className="w-full text-white"
                 loading={loading}
               >
                 Apply Filters

@@ -31,11 +31,6 @@ exports.validateLogin = [
 exports.validateRequest = [
   body('title').notEmpty().trim().isLength({ max: 100 }),
   body('description').notEmpty().trim().isLength({ max: 1000 }),
-  body('category').isIn([
-    'wedding', 'event', 'portrait', 'commercial', 
-    'product', 'real_estate', 'corporate', 'fashion',
-    'food', 'travel', 'sports', 'other'
-  ]),
   body('serviceType').isIn(['photography', 'videography', 'both']),
   body('budget.min').isInt({ min: 0 }),
   body('budget.max').isInt({ min: 0 }),
@@ -43,6 +38,7 @@ exports.validateRequest = [
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log(errors)
       return res.status(400).json({ errors: errors.array() });
     }
     next();

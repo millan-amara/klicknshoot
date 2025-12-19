@@ -1,5 +1,4 @@
-// In SubscriptionContext.js
-import React, { createContext, useState, useContext, useEffect } from 'react'
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { useAuth } from './AuthContext'
 
@@ -14,23 +13,44 @@ export const useSubscription = () => {
 }
 
 export const SubscriptionProvider = ({ children }) => {
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const [subscription, setSubscription] = useState(null)
   const [limits, setLimits] = useState(null)
   const [loading, setLoading] = useState(true)
+  
+  // Track previous user to detect changes
+  const prevUserIdRef = useRef(null)
 
   useEffect(() => {
-    if (user) {
-      fetchSubscription()
+    // If user logs out, reset subscription state
+    if (!isAuthenticated || !user) {
+      setSubscription(null)
+      setLimits(null)
+      setLoading(false)
+      prevUserIdRef.current = null
+      return
     }
-  }, [user])
 
-  const fetchSubscription = async () => {
-    if (!user) return
+    // If user changed, reset and fetch new subscription
+    const currentUserId = user.id || user._id
+    if (currentUserId !== prevUserIdRef.current) {
+      console.log('User changed, resetting subscription context')
+      setSubscription(null)
+      setLimits(null)
+      setLoading(true)
+      prevUserIdRef.current = currentUserId
+      
+      // Fetch new user's subscription
+      fetchSubscription(currentUserId)
+    }
+  }, [user, isAuthenticated])
+
+  const fetchSubscription = async (userId) => {
+    if (!userId) return
     
     setLoading(true)
     try {
-      const response = await axios.get(`/api/subscriptions?user=${user.id}`)
+      const response = await axios.get(`/api/subscriptions?user=${userId}`)
       if (response.data.subscriptions && response.data.subscriptions.length > 0) {
         const activeSub = response.data.subscriptions.find(sub => 
           sub.status === 'active' && (!sub.endDate || new Date(sub.endDate) > new Date())
@@ -48,12 +68,17 @@ export const SubscriptionProvider = ({ children }) => {
       }
       
       // If no active subscription found, set default free limits
-      if (!subscription && user.subscription) {
+      if (!subscription && user?.subscription) {
         const defaultLimits = getDefaultLimits(user.subscription)
         setLimits(defaultLimits)
       }
     } catch (error) {
       console.error('Error fetching subscription:', error)
+      // Set default free limits on error
+      if (user?.subscription) {
+        const defaultLimits = getDefaultLimits(user.subscription)
+        setLimits(defaultLimits)
+      }
     } finally {
       setLoading(false)
     }
@@ -62,14 +87,14 @@ export const SubscriptionProvider = ({ children }) => {
   const getDefaultLimits = (plan) => {
     const plans = {
       free: {
-        proposalsPerMonth: 10,
+        proposalsPerMonth: 3,
         activeRequests: 3,
         canSeeBudget: false,
         priority: 'low',
         verificationBadge: false
       },
       basic: {
-        proposalsPerMonth: 50,
+        proposalsPerMonth: 40,
         activeRequests: 10,
         canSeeBudget: true,
         priority: 'medium',
@@ -112,8 +137,19 @@ export const SubscriptionProvider = ({ children }) => {
   }
 
   const getRemainingProposals = () => {
-    if (!limits || !limits.usage) return 0
-    return limits.usage.proposals.remaining
+    if (!limits) return 0
+    
+    // Try different possible structures
+    if (limits.usage?.proposals?.remaining !== undefined) {
+      return limits.usage.proposals.remaining
+    }
+    
+    if (limits.proposalsPerMonth !== undefined) {
+      // If we have the limit but not usage, assume all are remaining
+      return limits.proposalsPerMonth
+    }
+    
+    return 0
   }
 
   const canSubmitProposal = () => {
@@ -125,16 +161,17 @@ export const SubscriptionProvider = ({ children }) => {
     return limits?.canSeeBudget || false
   }
 
+
   const value = {
     subscription,
     limits,
     loading,
-    createSubscription, // Updated name
+    createSubscription,
     cancelSubscription,
     getRemainingProposals,
     canSubmitProposal,
     canSeeBudget,
-    refreshSubscription: fetchSubscription
+    refreshSubscription: () => fetchSubscription(user?.id || user?._id)
   }
 
   return (
